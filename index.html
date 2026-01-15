@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>THE APPTV CENTRAL — Multi Monitor</title>
+
+  <!-- Config CSE -->
+  <script>
+    window.__gcse = {
+      parsetags: 'explicit',
+      callback: function() {
+        try {
+          window.__CSE_READY__ = true;
+          ['m1','m2','m3','m4'].forEach(renderCSEPair);
+          console.log('CSE listo ✅');
+        } catch (e) {
+          console.warn('CSE callback error:', e);
+        }
+      }
+    };
+  </script>
+  <script async src="https://cse.google.com/cse.js?cx=04f5ff6986fe641ad"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <style>
+    :root{
+      --bg:#050a12; --bg-soft:#0b1224; --card:#0f1b33;
+      --accent:#1f8bff; --accent-glow:#4ac3ff;
+      --text:#eaf4ff; --text-dim:#93a4c4;
+      --border:#1b2b4a; --radius:12px;
+      --shadow:0 0 15px rgba(31,139,255,0.25);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Poppins",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,#081021 0%,#040814 100%);
+      color:var(--text);
+    }
+    header,main,footer{padding:1rem}
+
+    header{
+      background:linear-gradient(180deg,#0d1528 0%,#0a0f20 100%);
+      box-shadow:var(--shadow);
+      border-bottom:1px solid var(--border);
+      border-radius:0 0 var(--radius) var(--radius);
+    }
+    h1{
+      color:var(--accent-glow);
+      text-shadow:0 0 12px rgba(74,195,255,0.5);
+      margin:0 0 .75rem;
+      letter-spacing:.5px;
+      font-weight:700;
+    }
+
+    /* Carrusel */
+    #carrusel-wrapper{position:relative}
+    #canales-inferiores{
+      display:flex; flex-wrap:nowrap; overflow-x:auto; gap:.7rem;
+      padding:1rem; background:var(--card); border-radius:var(--radius);
+      box-shadow:inset 0 0 10px rgba(31,139,255,0.12); scroll-behavior:smooth;
+    }
+    .canal{
+      background:var(--accent); color:#fff; border-radius:var(--radius);
+      padding:.5rem 1rem; cursor:pointer; white-space:nowrap; flex-shrink:0;
+      transition:all .25s ease; user-select:none;
+    }
+    .canal:hover{background:var(--accent-glow); box-shadow:0 0 10px rgba(74,195,255,0.6); transform:translateY(-1px)}
+    .flecha-carrusel{
+      position:absolute; top:50%; transform:translateY(-50%);
+      font-size:1.4rem; color:var(--accent-glow);
+      background:rgba(0,0,0,0.5);
+      border:2px solid var(--accent);
+      border-radius:50%;
+      width:42px; height:42px; cursor:pointer;
+      z-index:10;
+      transition:all .3s ease;
+      display:grid; place-items:center;
+    }
+    .flecha-carrusel:hover{background:var(--accent); color:#fff; box-shadow:0 0 10px rgba(74,195,255,.5)}
+    .flecha-izquierda{left:5px}
+    .flecha-derecha{right:5px}
+
+    /* Inputs y botones top */
+    #youtube-controls{gap:.5rem; margin-top:1rem; display:flex; flex-wrap:wrap}
+    #youtube-controls input,#buscador,#cargarArchivo{
+      background:#0d182f; color:var(--text);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:.5rem;
+      transition:border-color .2s;
+    }
+    #youtube-controls input:focus,#buscador:focus{border-color:var(--accent-glow); outline:none}
+
+    button{
+      padding:.45rem .8rem;
+      background:var(--accent);
+      border:none;
+      border-radius:var(--radius);
+      color:#fff;
+      cursor:pointer;
+      font-weight:600;
+      letter-spacing:.3px;
+      transition:all .25s ease;
+    }
+    button:hover{background:var(--accent-glow); box-shadow:0 0 10px rgba(74,195,255,0.6); transform:translateY(-1px)}
+
+    /* Grid */
+    .player-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:1rem;
+      margin-bottom:1rem;
+    }
+    .player-container{
+      position:relative;
+      width:100%;
+      height:55vh;
+      background:var(--card);
+      overflow:hidden;
+      display:flex;
+      flex-direction:column;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      border:1px solid var(--border);
+    }
+    video,.player-container iframe{width:100%; height:100%; object-fit:cover; border:none}
+
+    .panel-header{
+      display:flex; justify-content:space-between; align-items:center;
+      background:linear-gradient(90deg,var(--accent) 0%,var(--accent-glow) 100%);
+      color:#fff;
+      padding:6px 10px;
+      font-weight:600;
+      flex:0 0 auto;
+    }
+    .panel-header .right{display:flex; gap:6px}
+    .panel-header button{
+      background:#fff; color:#0a0f20;
+      border:none; padding:4px 10px;
+      border-radius:6px; cursor:pointer;
+      transition:all .2s;
+    }
+    .panel-header button:hover{background:var(--accent-glow); color:#fff}
+
+    .botones-panel{
+      margin-top:.5rem;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:.6rem;
+      align-items:flex-start;
+    }
+    .site-controls{display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .site-controls label{color:var(--text-dim)}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0}
+    .tab{padding:6px 10px; border:1px solid var(--border); border-radius:6px; cursor:pointer; background:#101d3b; color:#fff; transition:all .2s}
+    .tab.active,.tab:hover{background:var(--accent); box-shadow:0 0 8px rgba(74,195,255,0.4)}
+    .grid-split{display:grid; gap:8px; width:100%; height:100%}
+
+    /* ===== Fullscreen SAFE ===== */
+    .player-container:fullscreen{background:#000}
+    .player-container:-webkit-full-screen{background:#000}
+
+    .fs-exit{
+      position:absolute;
+      top:10px; right:10px;
+      z-index:2147483647;
+      display:none;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(0,0,0,.55);
+      color:#fff;
+      font-weight:900;
+      cursor:pointer;
+      backdrop-filter:blur(6px);
+    }
+    .player-container:fullscreen .fs-exit{display:inline-flex}
+    .player-container:-webkit-full-screen .fs-exit{display:inline-flex}
+
+    /* ===== Anti-freeze Shield (solo cuando está activo) ===== */
+    #fsShield{
+      position:fixed; inset:0;
+      z-index:2147483646;
+      background:rgba(0,0,0,0); /* invisible */
+      display:none;
+      pointer-events:auto;
+    }
+    #fsShield.active{display:block}
+    #fsShield .hint{
+      position:absolute; left:12px; bottom:12px;
+      background:rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.18);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:14px;
+      font-weight:700;
+      backdrop-filter: blur(6px);
+      max-width:min(520px,calc(100vw - 24px));
+      box-shadow:0 0 14px rgba(74,195,255,.22);
+    }
+
+    /* ===== Panic button fijo ===== */
+    #panicBtn{
+      position:fixed;
+      right:14px; bottom:14px;
+      z-index:2147483647;
+      padding:10px 12px;
+      border-radius:14px;
+      background:linear-gradient(90deg,var(--accent),var(--accent-glow));
+      color:#fff;
+      border:1px solid rgba(255,255,255,.15);
+      box-shadow:0 0 18px rgba(74,195,255,.35);
+      font-weight:900;
+    }
+
+    /* Modales */
+    .modal{position:fixed; inset:0; background:rgba(0,0,20,0.85); display:none; justify-content:center; align-items:center; z-index:1000}
+    .modal-content{background:var(--card); color:#eaf4ff; padding:1rem; border-radius:10px; width:min(800px,90vw); max-height:80vh; overflow:auto; border:1px solid var(--border); box-shadow:0 0 20px rgba(31,139,255,0.3)}
+    #listaFavoritos{list-style:none; padding:0; margin:0}
+    #listaFavoritos li{padding:.5rem; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center}
+
+    ::-webkit-scrollbar{height:8px; width:8px}
+    ::-webkit-scrollbar-track{background:#0c1328}
+    ::-webkit-scrollbar-thumb{background:var(--accent); border-radius:10px}
+    ::-webkit-scrollbar-thumb:hover{background:var(--accent-glow)}
+
+    /* Link Box */
+    .link-toolbar{
+      display:flex; flex-wrap:wrap; gap:.6rem; align-items:center;
+      background:#0b152b; border:1px solid var(--border); border-radius:var(--radius);
+      padding:.55rem .6rem;
+    }
+    .link-toolbar input[type="text"]{
+      flex:1 1 260px; min-width:200px;
+      background:#0d182f; color:var(--text);
+      border:1px solid var(--border); border-radius:10px;
+      padding:.45rem .6rem;
+    }
+    .link-toolbar input[type="text"]::placeholder{color:#6f82a9}
+    .link-toolbar .spacer{flex:999 1 0}
+    .compact-toggle{display:flex; align-items:center; gap:.45rem; color:var(--text-dim)}
+    .compact-toggle input{width:18px; height:18px}
+    .link-actions{display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; color:var(--text-dim)}
+    .link-actions button{padding:.35rem .6rem; font-weight:600}
+
+    .link-box{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:.6rem; width:100%;
+    }
+    .link-box.compact{grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:.5rem}
+
+    .link-card{
+      position:relative;
+      display:grid;
+      grid-template-columns:36px 1fr auto;
+      align-items:center;
+      gap:.6rem;
+      padding:.6rem .7rem;
+      background:#0d182f;
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:0 0 8px rgba(31,139,255,.12);
+      transition:transform .15s ease, box-shadow .2s ease, border-color .2s, background .2s;
+      cursor:grab;
+      user-select:none;
+    }
+    .link-box.compact .link-card{grid-template-columns:28px 1fr auto; padding:.45rem .55rem}
+    .link-card:hover{transform:translateY(-1px); box-shadow:0 0 12px rgba(74,195,255,.28); border-color:var(--accent)}
+    .link-card.selected{background:linear-gradient(180deg,#0f1f3d 0%,#0d182f 100%); border-color:var(--accent); box-shadow:0 0 14px rgba(74,195,255,.35)}
+    .link-card.dragging{opacity:.6; cursor:grabbing}
+    .link-card.drop-before::before,
+    .link-card.drop-after::after{
+      content:"";
+      position:absolute;
+      left:0; right:0;
+      height:0;
+      border-top:2px dashed var(--accent-glow);
+    }
+    .link-card.drop-before::before{top:-4px}
+    .link-card.drop-after::after{bottom:-4px}
+
+    .link-fav{width:28px; height:28px; border-radius:6px; background:#0b152b; display:grid; place-items:center; overflow:hidden}
+    .link-fav img{width:20px; height:20px}
+    .link-box.compact .link-fav{width:24px; height:24px}
+    .link-box.compact .link-fav img{width:18px; height:18px}
+
+    .link-info{display:flex; flex-direction:column; min-width:0}
+    .link-title{color:var(--text); font-weight:600; font-size:.95rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .link-host{color:var(--text-dim); font-size:.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .link-box.compact .link-title{font-size:.88rem}
+    .link-box.compact .link-host{font-size:.72rem}
+
+    .link-ctrl{display:flex; align-items:center; gap:.4rem}
+    .link-ctrl input[type="checkbox"]{width:18px; height:18px; cursor:pointer}
+    .site-select{display:none!important}
+  </style>
+</head>
+
+<body>
+  <!-- Anti-freeze shield -->
+  <div id="fsShield" onclick="panicRecover()">
+    <div class="hint">🛟 Si la página queda “muerta” después del fullscreen, toca aquí para desbloquear (o usa el botón 🧯).</div>
+  </div>
+
+  <!-- Panic button -->
+  <button id="panicBtn" type="button" onclick="panicRecover()">🧯 Desbloquear</button>
+
+  <header>
+    <h1>THE APPTV CENTRAL</h1>
+
+    <div id="carrusel-wrapper">
+      <button class="flecha-carrusel flecha-izquierda" onclick="scrollCarrusel(-1)">⬅️</button>
+      <div id="canales-inferiores"></div>
+      <button class="flecha-carrusel flecha-derecha" onclick="scrollCarrusel(1)">➡️</button>
+    </div>
+
+    <div id="youtube-controls" style="display:flex;">
+      <input id="youtubeSearch" type="text" placeholder="Buscar en YouTube..." style="flex:1;" />
+      <button onclick="buscarYT()">🔍 Buscar</button>
+      <button onclick="toggleRotacion()">⏸️ Pausar</button>
+      <button onclick="siguienteVideo()">⏭️ Siguiente</button>
+    </div>
+
+    <input type="text" id="buscador" placeholder="Buscar canal de la lista..." />
+    <input type="file" id="cargarArchivo" accept=".m3u" />
+    <button onclick="cargarCanalesInternos()">🎞️ Cargar Canales Internos</button>
+    <button onclick="mostrarFavoritos()">📁 Ver Favoritos</button>
+    <button onclick="exportarFavoritos()">💾 Exportar Favoritos</button>
+    <button onclick="desbloquearAdulto()">🔐🔑 Desbloquear Adultos</button>
+
+    <div style="margin-top:8px;">
+      <button onclick="limpiarResultados()">🧹 Limpiar TODO (m1–m4)</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="player-grid">
+
+      <!-- MONITOR 1 -->
+      <div class="player-container" data-index="0" id="monitor0">
+        <div class="panel-header">
+          <div class="left"><strong>Monitor 1</strong></div>
+          <div class="right">
+            <button onclick="limpiarBusqueda('m1')">🧹 Limpiar</button>
+            <button onclick="toggleFullscreenContainer(0)">🔍 Fullscreen</button>
+          </div>
+        </div>
+        <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+
+        <div id="searchbox-m1"></div>
+        <div id="results-m1" class="gcse-results-host"></div>
+
+        <div class="botones-panel">
+          <select id="siteSelect0" multiple size="5" class="site-select"></select>
+
+          <div class="link-toolbar">
+            <input type="text" id="lbFilter0" placeholder="Filtrar sitios (nombre, host o URL)..." oninput="lbApplyFilter(0)">
+            <div class="spacer"></div>
+            <label class="compact-toggle">
+              <input type="checkbox" id="lbCompact0" onchange="lbToggleCompact(0)"> Compact
+            </label>
+            <div class="link-actions">
+              <button type="button" onclick="lbSelectAll(0)">Seleccionar todos</button>
+              <button type="button" onclick="lbInvert(0)">Invertir</button>
+              <button type="button" onclick="lbClear(0)">Limpiar</button>
+            </div>
+          </div>
+
+          <div id="linkBox0" class="link-box"></div>
+
+          <div class="site-controls">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="checkbox" id="splitMode0" checked> Vista dividida
+            </label>
+            <button onclick="cargarGraficoTV(0)">🌐 Abrir sitios</button>
+            <button onclick="guardarSeleccionSitios(0)">💾 Guardar</button>
+            <button onclick="limpiarSeleccionSitios(0)">🧹 Limpiar</button>
+          </div>
+        </div>
+
+        <div class="botones-panel">
+          <input type="text" id="symbolInput0" placeholder="Símbolo (ej: EURUSD)" style="padding:0.5rem;" />
+          <button onclick="cargarGraficoTV(0)">📈 Gráfico</button>
+          <button onclick="quitarGraficoTV(0)">🗑️ Quitar</button>
+        </div>
+      </div>
+
+      <!-- MONITOR 2 -->
+      <div class="player-container" data-index="1" id="monitor1">
+        <div class="panel-header">
+          <div class="left"><strong>Monitor 2</strong></div>
+          <div class="right">
+            <button onclick="limpiarBusqueda('m2')">🧹 Limpiar</button>
+            <button onclick="toggleFullscreenContainer(1)">🔍 Fullscreen</button>
+          </div>
+        </div>
+        <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+
+        <div id="searchbox-m2"></div>
+        <div id="results-m2" class="gcse-results-host"></div>
+
+        <div class="botones-panel">
+          <select id="siteSelect1" multiple size="5" class="site-select"></select>
+
+          <div class="link-toolbar">
+            <input type="text" id="lbFilter1" placeholder="Filtrar sitios (nombre, host o URL)..." oninput="lbApplyFilter(1)">
+            <div class="spacer"></div>
+            <label class="compact-toggle">
+              <input type="checkbox" id="lbCompact1" onchange="lbToggleCompact(1)"> Compact
+            </label>
+            <div class="link-actions">
+              <button type="button" onclick="lbSelectAll(1)">Seleccionar todos</button>
+              <button type="button" onclick="lbInvert(1)">Invertir</button>
+              <button type="button" onclick="lbClear(1)">Limpiar</button>
+            </div>
+          </div>
+
+          <div id="linkBox1" class="link-box"></div>
+
+          <div class="site-controls">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="checkbox" id="splitMode1" checked> Vista dividida
+            </label>
+            <button onclick="cargarGraficoTV(1)">🌐 Abrir sitios</button>
+            <button onclick="guardarSeleccionSitios(1)">💾 Guardar</button>
+            <button onclick="limpiarSeleccionSitios(1)">🧹 Limpiar</button>
+          </div>
+        </div>
+
+        <div class="botones-panel">
+          <input type="text" id="symbolInput1" placeholder="Símbolo (ej: EURUSD)" style="padding:0.5rem;" />
+          <button onclick="cargarGraficoTV(1)">📈 Gráfico</button>
+          <button onclick="quitarGraficoTV(1)">🗑️ Quitar</button>
+        </div>
+      </div>
+
+      <!-- MONITOR 3 -->
+      <div class="player-container" data-index="2" id="monitor2">
+        <div class="panel-header">
+          <div class="left"><strong>Monitor 3</strong></div>
+          <div class="right">
+            <button onclick="limpiarBusqueda('m3')">🧹 Limpiar</button>
+            <button onclick="toggleFullscreenContainer(2)">🔍 Fullscreen</button>
+          </div>
+        </div>
+        <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+
+        <div id="searchbox-m3"></div>
+        <div id="results-m3" class="gcse-results-host"></div>
+
+        <div class="botones-panel">
+          <select id="siteSelect2" multiple size="5" class="site-select"></select>
+
+          <div class="link-toolbar">
+            <input type="text" id="lbFilter2" placeholder="Filtrar sitios (nombre, host o URL)..." oninput="lbApplyFilter(2)">
+            <div class="spacer"></div>
+            <label class="compact-toggle">
+              <input type="checkbox" id="lbCompact2" onchange="lbToggleCompact(2)"> Compact
+            </label>
+            <div class="link-actions">
+              <button type="button" onclick="lbSelectAll(2)">Seleccionar todos</button>
+              <button type="button" onclick="lbInvert(2)">Invertir</button>
+              <button type="button" onclick="lbClear(2)">Limpiar</button>
+            </div>
+          </div>
+
+          <div id="linkBox2" class="link-box"></div>
+
+          <div class="site-controls">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="checkbox" id="splitMode2" checked> Vista dividida
+            </label>
+            <button onclick="cargarGraficoTV(2)">🌐 Abrir sitios</button>
+            <button onclick="guardarSeleccionSitios(2)">💾 Guardar</button>
+            <button onclick="limpiarSeleccionSitios(2)">🧹 Limpiar</button>
+          </div>
+        </div>
+
+        <div class="botones-panel">
+          <input type="text" id="symbolInput2" placeholder="Símbolo (ej: EURUSD)" style="padding:0.5rem;" />
+          <button onclick="cargarGraficoTV(2)">📈 Gráfico</button>
+          <button onclick="quitarGraficoTV(2)">🗑️ Quitar</button>
+        </div>
+      </div>
+
+      <!-- MONITOR 4 -->
+      <div class="player-container" data-index="3" id="monitor3">
+        <div class="panel-header">
+          <div class="left"><strong>Monitor 4</strong></div>
+          <div class="right">
+            <button onclick="limpiarBusqueda('m4')">🧹 Limpiar</button>
+            <button onclick="toggleFullscreenContainer(3)">🔍 Fullscreen</button>
+          </div>
+        </div>
+        <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+
+        <div id="searchbox-m4"></div>
+        <div id="results-m4" class="gcse-results-host"></div>
+
+        <div class="botones-panel">
+          <select id="siteSelect3" multiple size="5" class="site-select"></select>
+
+          <div class="link-toolbar">
+            <input type="text" id="lbFilter3" placeholder="Filtrar sitios (nombre, host o URL)..." oninput="lbApplyFilter(3)">
+            <div class="spacer"></div>
+            <label class="compact-toggle">
+              <input type="checkbox" id="lbCompact3" onchange="lbToggleCompact(3)"> Compact
+            </label>
+            <div class="link-actions">
+              <button type="button" onclick="lbSelectAll(3)">Seleccionar todos</button>
+              <button type="button" onclick="lbInvert(3)">Invertir</button>
+              <button type="button" onclick="lbClear(3)">Limpiar</button>
+            </div>
+          </div>
+
+          <div id="linkBox3" class="link-box"></div>
+
+          <div class="site-controls">
+            <label style="display:flex;align-items:center;gap:6px;">
+              <input type="checkbox" id="splitMode3" checked> Vista dividida
+            </label>
+            <button onclick="cargarGraficoTV(3)">🌐 Abrir sitios</button>
+            <button onclick="guardarSeleccionSitios(3)">💾 Guardar</button>
+            <button onclick="limpiarSeleccionSitios(3)">🧹 Limpiar</button>
+          </div>
+        </div>
+
+        <div class="botones-panel">
+          <input type="text" id="symbolInput3" placeholder="Símbolo (ej: EURUSD)" style="padding:0.5rem;" />
+          <button onclick="cargarGraficoTV(3)">📈 Gráfico</button>
+          <button onclick="quitarGraficoTV(3)">🗑️ Quitar</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- MODALES -->
+  <div class="modal" id="modalFavoritos">
+    <div class="modal-content">
+      <h3>🎯 Favoritos</h3>
+      <ul id="listaFavoritos"></ul>
+      <div style="text-align:right;margin-top:10px;">
+        <button onclick="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="modalPantalla">
+    <div class="modal-content">
+      <h3>🖥️ ¿En qué pantalla quieres ver este canal?</h3>
+      <div style="display:flex; gap: 1rem; justify-content:center; margin: 1rem 0;">
+        <button onclick="reproducirEnPantallaSeleccionada(0)">Pantalla 1</button>
+        <button onclick="reproducirEnPantallaSeleccionada(1)">Pantalla 2</button>
+        <button onclick="reproducirEnPantallaSeleccionada(2)">Pantalla 3</button>
+        <button onclick="reproducirEnPantallaSeleccionada(3)">Pantalla 4</button>
+      </div>
+      <div style="text-align:right;">
+        <button onclick="cerrarModalPantalla()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ====== CSE programático ====== */
+    function renderCSEPair(gname) {
+      google.search.cse.element.render({
+        div: 'searchbox-' + gname,
+        tag: 'searchbox-only',
+        gname: gname,
+        attributes: { enableAutoComplete: true, autoCompleteMaxCompletions: 8 }
+      });
+      google.search.cse.element.render({
+        div: 'results-' + gname,
+        tag: 'searchresults-only',
+        gname: gname
+      });
+    }
+    function resetAndRenderCSE(gname) {
+      const sb = document.getElementById('searchbox-' + gname);
+      const rs = document.getElementById('results-' + gname);
+      if (sb) sb.innerHTML = '';
+      if (rs) rs.innerHTML = '';
+      if (window.__CSE_READY__) renderCSEPair(gname);
+    }
+
+    /* ========= CARRUSEL ========= */
+    function scrollCarrusel(direccion) {
+      const carrusel = document.getElementById("canales-inferiores");
+      carrusel.scrollBy({ left: 300 * direccion, behavior: "smooth" });
+    }
+
+    /* ========= UTIL: parse M3U ========= */
+    function parseM3U(texto) {
+      const clean = (texto || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
+      const lineas = clean.split('\n');
+      const canales = [];
+      for (let i = 0; i < lineas.length; i++) {
+        const linea = (lineas[i] || '').trim();
+        if (linea.startsWith('#EXTINF')) {
+          const titulo = linea.split(',')[1]?.trim() || 'Canal sin nombre';
+          const url = (lineas[i + 1] || '').trim();
+          if (url && /^https?:\/\//i.test(url)) { canales.push({ nombre: titulo, url }); i++; }
+        } else if (/^https?:\/\//i.test(linea)) {
+          canales.push({ nombre: linea.split('/').slice(-1)[0] || 'Canal', url: linea });
+        }
+      }
+      return canales;
+    }
+
+    let canalSeleccionado = null;
+    let listaOriginalCanales = [];
+
+    function mostrarCanales(canales, guardarOriginal = false) {
+      if (guardarOriginal) listaOriginalCanales = canales;
+      const contenedor = document.getElementById("canales-inferiores");
+      contenedor.innerHTML = "";
+      canales.forEach((canal) => {
+        const div = document.createElement("div");
+        div.className = "canal";
+        div.textContent = canal.nombre;
+        div.onclick = () => mostrarModalPantalla(canal.url);
+        contenedor.appendChild(div);
+      });
+    }
+
+    function filtrarCanales() {
+      const texto = (document.getElementById("buscador").value || "").toLowerCase();
+      const filtrados = listaOriginalCanales.filter(canal =>
+        (canal.nombre || "").toLowerCase().includes(texto)
+      );
+      mostrarCanales(filtrados);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const buscador = document.getElementById("buscador");
+      if (buscador) buscador.addEventListener("input", filtrarCanales);
+    });
+
+    /* ========= Modal elegir pantalla ========= */
+    function mostrarModalPantalla(url) {
+      canalSeleccionado = url;
+      document.getElementById("modalPantalla").style.display = "flex";
+    }
+    function cerrarModalPantalla() {
+      document.getElementById("modalPantalla").style.display = "none";
+      canalSeleccionado = null;
+    }
+    function reproducirEnPantallaSeleccionada(pantallaIndex) {
+      if (canalSeleccionado) {
+        const container = document.querySelector(`.player-container[data-index='${pantallaIndex}']`);
+        if (!container) return;
+
+        container.innerHTML = `
+          <div class="panel-header">
+            <div class="left"><strong>Monitor ${pantallaIndex+1}</strong></div>
+            <div class="right">
+              <button onclick="limpiarBusqueda('m${pantallaIndex+1}')">🧹 Limpiar</button>
+              <button onclick="toggleFullscreenContainer(${pantallaIndex})">🔍 Fullscreen</button>
+            </div>
+          </div>
+          <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+          <video id="player${pantallaIndex + 1}" controls></video>
+          <div id="searchbox-m${pantallaIndex+1}"></div>
+          <div id="results-m${pantallaIndex+1}" class="gcse-results-host"></div>
+        `;
+        reproducirCanal(canalSeleccionado, pantallaIndex);
+        resetAndRenderCSE('m' + (pantallaIndex+1));
+      }
+      cerrarModalPantalla();
+    }
+
+    /* ========= Reproducir HLS ========= */
+    function reproducirCanal(url, playerIndex) {
+      const player = document.getElementById(`player${playerIndex + 1}`);
+      if (player && player.hlsInstance) player.hlsInstance.destroy();
+
+      if (player && Hls.isSupported()) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(player);
+        player.hlsInstance = hls;
+        hls.on(Hls.Events.MANIFEST_PARSED, () => player.play().catch(()=>{}));
+      } else if (player && player.canPlayType && player.canPlayType('application/vnd.apple.mpegurl')) {
+        player.src = url;
+        player.addEventListener('loadedmetadata', () => player.play().catch(()=>{}), { once:true });
+      } else {
+        alert("Tu navegador no soporta la reproducción de este canal.");
+      }
+    }
+
+    /* ========= YouTube con rotación ========= */
+    let apiKey = "AIzaSyA4NpwgJmEzBGGTzFFjShyrtWICgSSml-I";
+    let rotationInterval = null, currentVideoIndex = 0, youtubeResults = [], isPaused = false;
+
+    function targetIndexForYouTube() {
+      const hasCSE = !!document.querySelector(".player-container[data-index='0'] #results-m1");
+      return hasCSE ? 1 : 0;
+    }
+
+    function buscarYT() {
+      const query = document.getElementById("youtubeSearch").value.trim();
+      if (!query) return alert("Escribe una búsqueda.");
+      fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=40&q=${encodeURIComponent(query)}&key=${apiKey}`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.items || !data.items.length) return alert("No se encontraron resultados.");
+          youtubeResults = data.items;
+          currentVideoIndex = 0;
+          reproducirVideoActual();
+          iniciarRotacion();
+        })
+        .catch(err => { console.error("Error al buscar en YouTube:", err); alert("Error al buscar videos."); });
+    }
+
+    function reproducirVideoActual() {
+      const video = youtubeResults[currentVideoIndex]; if (!video) return;
+      const videoId = video.id.videoId;
+
+      const iframe = document.createElement("iframe");
+      iframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`;
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen";
+      iframe.setAttribute("allowfullscreen", "");
+      iframe.setAttribute("webkitallowfullscreen", "");
+
+      const idx = targetIndexForYouTube();
+      const container = document.querySelector(`.player-container[data-index='${idx}']`);
+      if(!container) return;
+
+      container.innerHTML = `
+        <div class="panel-header">
+          <div class="left"><strong>Monitor ${idx+1}</strong></div>
+          <div class="right">
+            <button onclick="limpiarBusqueda('m${idx+1}')">🧹 Limpiar</button>
+            <button onclick="toggleFullscreenContainer(${idx})">🔍 Fullscreen</button>
+          </div>
+        </div>
+        <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+        <div id="searchbox-m${idx+1}"></div>
+        <div id="results-m${idx+1}" class="gcse-results-host"></div>
+      `;
+      container.appendChild(iframe);
+      resetAndRenderCSE('m' + (idx+1));
+    }
+
+    function iniciarRotacion() {
+      detenerRotacion();
+      rotationInterval = setInterval(() => { if (!isPaused) siguienteVideo(); }, 3 * 60 * 1000);
+    }
+    function detenerRotacion() { if (rotationInterval) clearInterval(rotationInterval); }
+    function toggleRotacion() { isPaused = !isPaused; alert(isPaused ? "⏸️ Rotación pausada." : "▶️ Rotación reanudada."); }
+    function siguienteVideo() { currentVideoIndex = (currentVideoIndex + 1) % youtubeResults.length; reproducirVideoActual(); }
+
+    /* ========= Sitios favoritos ========= */
+    const FAVORITE_SITES = [
+      { label: "weltrade", url: "https://www.weltrade.com/tools/charts/" },
+      { label: "weltrade", url: "https://www.weltrade.com/tools/charts/" },
+      { label: "weltrade", url: "https://www.weltrade.com/tools/charts/" },
+      { label: "weltrade", url: "https://www.weltrade.com/tools/charts/" },
+      { label: "weltrade", url: "https://www.weltrade.com/tools/charts/" }
+    ];
+    const LS_KEY = (idx) => `siteSelection:${idx}`;
+    const ORDER_KEY = (idx) => `siteOrder:${idx}`;
+    const COMPACT_KEY = (idx) => `siteCompact:${idx}`;
+
+    const normalizeUrl = (u) => {
+      if (!u) return "";
+      let url = String(u).trim();
+      if (!/^https?:\/\//i.test(url)) url = "https://" + url.replace(/^\/+/, "");
+      return url;
+    };
+
+    function faviconURL(u){
+      try { return 'https://www.google.com/s2/favicons?sz=64&domain=' + (new URL(u)).hostname; }
+      catch { return 'https://www.google.com/s2/favicons?sz=64&domain=example.com'; }
+    }
+    function hostOf(u){ try { return (new URL(u)).hostname; } catch { return u; } }
+
+    function getSavedOrder(index){ try { return JSON.parse(localStorage.getItem(ORDER_KEY(index)) || "[]"); } catch { return []; } }
+    function saveOrder(index, arr){ try { localStorage.setItem(ORDER_KEY(index), JSON.stringify(arr)); } catch {} }
+    function getCompact(index){ try { return JSON.parse(localStorage.getItem(COMPACT_KEY(index)) || "false"); } catch { return false; } }
+    function setCompact(index, val){ try { localStorage.setItem(COMPACT_KEY(index), JSON.stringify(!!val)); } catch {} }
+
+    function renderLinkBox(index){
+      const select = document.getElementById(`siteSelect${index}`);
+      const box = document.getElementById(`linkBox${index}`);
+      if(!select || !box) return;
+
+      const selected = new Set(Array.from(select.selectedOptions).map(o=>o.value));
+      let opts = Array.from(select.options).map(o => ({
+        url: o.value,
+        label: (o.text || o.value).split(' — ')[0] || o.value,
+        host: hostOf(o.value)
+      }));
+
+      const savedOrder = getSavedOrder(index);
+      if (savedOrder.length) {
+        const orderMap = new Map(savedOrder.map((u,i)=>[u,i]));
+        opts.sort((a,b) => (orderMap.has(a.url)?orderMap.get(a.url):1e9) - (orderMap.has(b.url)?orderMap.get(b.url):1e9));
+      }
+
+      box.innerHTML = opts.map(({url,label,host})=>{
+        const isSel = selected.has(url);
+        return `
+          <div class="link-card ${isSel?'selected':''}" data-url="${url}"
+               data-label="${label.toLowerCase()}" data-host="${String(host).toLowerCase()}"
+               data-full="${String(url).toLowerCase()}" draggable="true">
+            <div class="link-fav"><img src="${faviconURL(url)}" alt=""></div>
+            <div class="link-info">
+              <div class="link-title" title="${label}">${label}</div>
+              <div class="link-host" title="${url}">${host}</div>
+            </div>
+            <div class="link-ctrl"><input type="checkbox" ${isSel?'checked':''}></div>
+          </div>
+        `;
+      }).join('');
+
+      const compact = getCompact(index);
+      const compactChk = document.getElementById(`lbCompact${index}`);
+      if (compactChk) compactChk.checked = compact;
+      box.classList.toggle('compact', compact);
+
+      enableLinkCardInteractions(index);
+      lbEnableDrag(index);
+      lbApplyFilter(index);
+    }
+
+    function lbSyncSelectFromBox(index){
+      const select = document.getElementById(`siteSelect${index}`);
+      const box = document.getElementById(`linkBox${index}`);
+      if(!select || !box) return;
+      const chosen = new Set(Array.from(box.querySelectorAll('.link-card.selected')).map(c => c.getAttribute('data-url')));
+      Array.from(select.options).forEach(o => o.selected = chosen.has(o.value));
+    }
+
+    function enableLinkCardInteractions(index){
+      const box = document.getElementById(`linkBox${index}`);
+      if(!box) return;
+      box.querySelectorAll('.link-card').forEach(card=>{
+        card.addEventListener('click', (e)=>{
+          if (e.target && e.target.matches('input[type="checkbox"]')) return;
+          card.classList.toggle('selected');
+          const chk = card.querySelector('input[type="checkbox"]');
+          if (chk) chk.checked = card.classList.contains('selected');
+          lbSyncSelectFromBox(index);
+        });
+        const chk = card.querySelector('input[type="checkbox"]');
+        if (chk) chk.addEventListener('click', (e)=>{
+          e.stopPropagation();
+          card.classList.toggle('selected', chk.checked);
+          lbSyncSelectFromBox(index);
+        });
+      });
+    }
+
+    function lbEnableDrag(index){
+      const box = document.getElementById(`linkBox${index}`);
+      if(!box) return;
+      let dragEl = null;
+
+      box.querySelectorAll('.link-card').forEach(card=>{
+        card.addEventListener('dragstart', (e)=>{
+          dragEl = card;
+          card.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          try { e.dataTransfer.setData('text/plain', card.getAttribute('data-url')); } catch {}
+        });
+        card.addEventListener('dragend', ()=>{
+          if(dragEl){ dragEl.classList.remove('dragging'); dragEl = null; }
+          saveCurrentOrder(index);
+        });
+        card.addEventListener('dragover', (e)=>{
+          e.preventDefault();
+          if(!dragEl || dragEl === card) return;
+          const rect = card.getBoundingClientRect();
+          const before = (e.clientY - rect.top) < rect.height / 2;
+          card.classList.toggle('drop-before', before);
+          card.classList.toggle('drop-after', !before);
+        });
+        card.addEventListener('dragleave', ()=> card.classList.remove('drop-before','drop-after'));
+        card.addEventListener('drop', (e)=>{
+          e.preventDefault();
+          if(!dragEl || dragEl === card) return;
+          const before = card.classList.contains('drop-before');
+          card.classList.remove('drop-before','drop-after');
+          if (before) box.insertBefore(dragEl, card);
+          else box.insertBefore(dragEl, card.nextSibling);
+          saveCurrentOrder(index);
+        });
+      });
+
+      function saveCurrentOrder(idx){
+        const order = Array.from(box.querySelectorAll('.link-card')).map(c=>c.getAttribute('data-url'));
+        saveOrder(idx, order);
+      }
+    }
+
+    function lbApplyFilter(index){
+      const box = document.getElementById(`linkBox${index}`);
+      const input = document.getElementById(`lbFilter${index}`);
+      if(!box || !input) return;
+      const q = (input.value || '').trim().toLowerCase();
+      const cards = box.querySelectorAll('.link-card');
+      if(!q){ cards.forEach(c => c.style.display = ''); return; }
+      cards.forEach(c=>{
+        const label = c.getAttribute('data-label') || '';
+        const host  = c.getAttribute('data-host') || '';
+        const full  = c.getAttribute('data-full') || '';
+        c.style.display = (label.includes(q) || host.includes(q) || full.includes(q)) ? '' : 'none';
+      });
+    }
+
+    function lbToggleCompact(index){
+      const box = document.getElementById(`linkBox${index}`);
+      const chk = document.getElementById(`lbCompact${index}`);
+      if(!box || !chk) return;
+      box.classList.toggle('compact', !!chk.checked);
+      setCompact(index, !!chk.checked);
+    }
+
+    function lbSelectAll(index){
+      const box = document.getElementById(`linkBox${index}`); if(!box) return;
+      box.querySelectorAll('.link-card').forEach(c=>{
+        c.classList.add('selected');
+        const chk = c.querySelector('input[type="checkbox"]'); if(chk) chk.checked = true;
+      });
+      lbSyncSelectFromBox(index);
+    }
+    function lbInvert(index){
+      const box = document.getElementById(`linkBox${index}`); if(!box) return;
+      box.querySelectorAll('.link-card').forEach(c=>{
+        const sel = c.classList.toggle('selected');
+        const chk = c.querySelector('input[type="checkbox"]'); if(chk) chk.checked = sel;
+      });
+      lbSyncSelectFromBox(index);
+    }
+    function lbClear(index){
+      const box = document.getElementById(`linkBox${index}`); if(!box) return;
+      box.querySelectorAll('.link-card').forEach(c=>{
+        c.classList.remove('selected');
+        const chk = c.querySelector('input[type="checkbox"]'); if(chk) chk.checked = false;
+      });
+      lbSyncSelectFromBox(index);
+    }
+
+    function initSitePicker(index) {
+      const select = document.getElementById(`siteSelect${index}`);
+      if (!select) return;
+
+      select.innerHTML = FAVORITE_SITES.map(s => `<option value="${s.url}">${s.label} — ${s.url}</option>`).join("");
+
+      const savedSel = JSON.parse(localStorage.getItem(LS_KEY(index)) || "[]");
+      Array.from(select.options).forEach(opt => { opt.selected = savedSel.includes(opt.value); });
+
+      const compact = getCompact(index);
+      const compactChk = document.getElementById(`lbCompact${index}`);
+      if (compactChk) compactChk.checked = compact;
+
+      renderLinkBox(index);
+    }
+
+    function guardarSeleccionSitios(index) {
+      lbSyncSelectFromBox(index);
+      const select = document.getElementById(`siteSelect${index}`);
+      const seleccion = Array.from(select.selectedOptions).map(o => o.value);
+      localStorage.setItem(LS_KEY(index), JSON.stringify(seleccion));
+      alert("Selección guardada ✅");
+    }
+
+    function limpiarSeleccionSitios(index) {
+      lbClear(index);
+      const select = document.getElementById(`siteSelect${index}`);
+      if(select) Array.from(select.options).forEach(o => (o.selected = false));
+      localStorage.removeItem(LS_KEY(index));
+    }
+
+    function getUrlsFromLinkBoxInOrder(index){
+      const box = document.getElementById(`linkBox${index}`);
+      if(!box) return [];
+      const cards = Array.from(box.querySelectorAll('.link-card.selected'));
+      return cards.map(c => normalizeUrl(c.getAttribute('data-url'))).filter(Boolean);
+    }
+
+    function iframeHTML(u){
+      const safe = u.replace(/"/g, '&quot;');
+      return `<iframe src="${safe}"
+                allow="fullscreen; clipboard-read; clipboard-write"
+                allowfullscreen webkitallowfullscreen
+                frameborder="0" scrolling="auto"
+                style="width:100%; height:100%; border:0;"></iframe>`;
+    }
+
+    function renderIframesInContainer(index, urls) {
+      const container = document.querySelector(`.player-container[data-index='${index}']`);
+      if (!container) return;
+      const cleanUrls = urls.map(normalizeUrl).filter(Boolean);
+      if (cleanUrls.length === 0) return alert("Selecciona al menos 1 sitio.");
+
+      const split = document.getElementById(`splitMode${index}`)?.checked && cleanUrls.length > 1;
+
+      const header = `
+        <div class="panel-header">
+          <div class="left"><strong>Monitor ${index+1}</strong></div>
+          <div class="right">
+            <button onclick="limpiarBusqueda('m${index+1}')">🧹 Limpiar</button>
+            <button onclick="toggleFullscreenContainer(${index})">🔍 Fullscreen</button>
+          </div>
+        </div>
+        <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+      `;
+
+      if (split) {
+        const n = cleanUrls.length;
+        let cols = 2; if (n === 3) cols = 3; if (n >= 4) cols = 3;
+        const gridStyle = `grid-template-columns: repeat(${cols}, 1fr); grid-auto-rows: minmax(200px, 1fr);`;
+
+        container.innerHTML = `
+          ${header}
+          <div class="grid-split" style="${gridStyle}; width:100%; height:calc(100% - 40px);">
+            ${cleanUrls.map(iframeHTML).join("")}
+          </div>
+          <div id="searchbox-m${index+1}"></div>
+          <div id="results-m${index+1}" class="gcse-results-host"></div>
+        `;
+      } else if (cleanUrls.length === 1) {
+        container.innerHTML = `
+          ${header}
+          ${iframeHTML(cleanUrls[0])}
+          <div id="searchbox-m${index+1}"></div>
+          <div id="results-m${index+1}" class="gcse-results-host"></div>
+        `;
+        const iframe = container.querySelector("iframe");
+        if(iframe) iframe.style.height = "calc(100% - 40px)";
+      } else {
+        const tabs = cleanUrls.map((u, i) =>
+          `<button class="tab ${i===0?'active':''}" data-tab="${i}" onclick="activarTab(${index}, ${i})">${new URL(u).hostname}</button>`
+        ).join("");
+
+        const iframes = cleanUrls.map((u, i) => `
+          <iframe id="iframe-${index}-${i}" src="${u}"
+                  allow="fullscreen; clipboard-read; clipboard-write"
+                  allowfullscreen webkitallowfullscreen
+                  style="width:100%; height:calc(100% - 46px); border:0; display:${i===0?'block':'none'};"
+                  frameborder="0" scrolling="auto"></iframe>
+        `).join("");
+
+        container.innerHTML = `
+          ${header}
+          <div class="tabs" id="tabs-${index}">${tabs}</div>
+          <div style="width:100%; height:calc(100% - 86px);">${iframes}</div>
+          <div id="searchbox-m${index+1}"></div>
+          <div id="results-m${index+1}" class="gcse-results-host"></div>
+        `;
+      }
+
+      resetAndRenderCSE('m' + (index+1));
+    }
+
+    function activarTab(index, i) {
+      const tabsWrap = document.getElementById(`tabs-${index}`); if (!tabsWrap) return;
+      tabsWrap.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      const target = tabsWrap.querySelector(`.tab[data-tab='${i}']`);
+      if (target) target.classList.add("active");
+      const container = document.querySelector(`.player-container[data-index='${index}']`); if (!container) return;
+      container.querySelectorAll("iframe[id^='iframe-']").forEach((f, idx) => f.style.display = (idx === i) ? "block" : "none");
+    }
+
+    function cargarGraficoTV(index) {
+      const urls = getUrlsFromLinkBoxInOrder(index);
+      const finalUrls = urls.length ? urls : ["https://cuervo-123.github.io/GLOBALTV4YOUPLUS/"];
+      renderIframesInContainer(index, finalUrls);
+    }
+
+    function quitarGraficoTV(index) {
+      const container = document.querySelector(`.player-container[data-index='${index}']`);
+      if(!container) return;
+      container.innerHTML = `
+        <div class="panel-header">
+          <div class="left"><strong>Monitor ${index+1}</strong></div>
+          <div class="right">
+            <button onclick="limpiarBusqueda('m${index+1}')">🧹 Limpiar</button>
+            <button onclick="toggleFullscreenContainer(${index})">🔍 Fullscreen</button>
+          </div>
+        </div>
+        <button class="fs-exit" type="button" onclick="forceExitFullscreen()">❌ Salir Fullscreen</button>
+        <video id="player${index + 1}" controls></video>
+        <div id="searchbox-m${index+1}"></div>
+        <div id="results-m${index+1}" class="gcse-results-host"></div>
+      `;
+      resetAndRenderCSE('m' + (index+1));
+    }
+
+    /* ========= FULLSCREEN + ANTI-FREEZE ========= */
+    const fsShield = () => document.getElementById("fsShield");
+    const _fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
+
+    let FS_LOCK = false;
+    let FS_LOCK_T = null;
+
+    function setShield(on){
+      const el = fsShield();
+      if(!el) return;
+      el.classList.toggle("active", !!on);
+    }
+
+    function lockFS(ms=1800){
+      FS_LOCK = true;
+      clearTimeout(FS_LOCK_T);
+      FS_LOCK_T = setTimeout(()=>{ FS_LOCK = false; }, ms);
+    }
+
+    async function toggleFullscreenContainer(index){
+      if(FS_LOCK) return;
+      lockFS();
+
+      const el = document.querySelector(`.player-container[data-index='${index}']`);
+      if(!el) return;
+
+      try{
+        // Shield activo durante la transición (si Chrome se queda "zombie" lo rescatas con click)
+        setShield(true);
+
+        if(_fsEl()){
+          await forceExitFullscreen(true);
+          setShield(false);
+          return;
+        }
+
+        const req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if(!req){ alert("Fullscreen no soportado."); setShield(false); return; }
+
+        // Intento fullscreen
+        const p = req.call(el);
+        if(p && p.then) await p;
+
+        // si todo bien, dejamos el shield activo SOLO 1.2s (para tapar el glitch de input)
+        setTimeout(()=> setShield(!!_fsEl()), 1200);
+
+      }catch(err){
+        console.warn("Fullscreen error:", err);
+        // Si falla, limpiamos
+        setShield(false);
+        FS_LOCK = false;
+      }
+
+      // watchdog: si en 2.5s no hay fullscreen pero algo quedó colgado, desbloquea
+      setTimeout(()=>{
+        if(!_fsEl()){
+          setShield(false);
+          // fuerza que el UI vuelva a recibir eventos
+          document.body.style.pointerEvents = "auto";
+        }
+      }, 2500);
+    }
+
+    async function forceExitFullscreen(silent){
+      try{
+        const exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if(exit) {
+          const p = exit.call(document);
+          if(p && p.then) await p;
+        }
+      }catch(e){
+        if(!silent) console.warn("exitFullscreen err:", e);
+      } finally {
+        setShield(false);
+        // re-habilita UI sí o sí
+        document.body.style.pointerEvents = "auto";
+      }
+    }
+
+    // Rescate total (para “página visible pero muerta”)
+    function panicRecover(){
+      // 1) salir fullscreen
+      forceExitFullscreen(true);
+
+      // 2) cerrar modales si quedaron abiertos/capturando eventos
+      try{
+        const mf = document.getElementById("modalFavoritos");
+        const mp = document.getElementById("modalPantalla");
+        if(mf) mf.style.display = "none";
+        if(mp) mp.style.display = "none";
+      }catch{}
+
+      // 3) matar shield, reactivar eventos
+      setShield(false);
+      document.body.style.pointerEvents = "auto";
+
+      // 4) pequeño “nudge” para Chrome (reflow)
+      try{ document.body.offsetHeight; }catch{}
+
+      console.log("🧯 Panic recover executed ✅");
+    }
+
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape") panicRecover();
+      if(e.key && e.key.toLowerCase() === "x" && (e.ctrlKey || e.metaKey)) panicRecover();
+    });
+
+    document.addEventListener("fullscreenchange", ()=>{
+      // shield solo si hay fullscreen
+      setShield(!!_fsEl());
+    });
+    document.addEventListener("webkitfullscreenchange", ()=>{
+      setShield(!!_fsEl());
+    });
+
+    // Si pierde foco y vuelve y quedó raro
+    window.addEventListener("focus", ()=>{
+      // si no hay fullscreen, shield fuera
+      if(!_fsEl()) setShield(false);
+      document.body.style.pointerEvents = "auto";
+    });
+
+    /* ========= Favoritos (stubs) ========= */
+    function mostrarFavoritos(){ document.getElementById("modalFavoritos").style.display="flex"; }
+    function cerrarModal(){ document.getElementById("modalFavoritos").style.display="none"; }
+    function exportarFavoritos(){ alert("Exportar favoritos (mantén tu implementación actual aquí)."); }
+    function desbloquearAdulto(){ alert("Desbloqueo de adultos (mantén tu implementación actual aquí)."); }
+    function cargarCanalesInternos(){ alert("Carga de canales internos (mantén tu implementación actual aquí)."); }
+
+    /* ========= LIMPIAR BÚSQUEDA ========= */
+    function limpiarBusqueda(gname) {
+      try {
+        if (window.__CSE_READY__ && google?.search?.cse?.element) {
+          const el = google.search.cse.element.getElement(gname);
+          if (el?.clearAllResults) el.clearAllResults();
+          else if (el?.execute) el.execute('');
+        }
+      } catch(e) {
+        console.warn('No se pudo usar API CSE para limpiar', gname, e);
+      }
+      resetAndRenderCSE(gname);
+    }
+    function limpiarResultados(){ ['m1','m2','m3','m4'].forEach(limpiarBusqueda); }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      [0,1,2,3].forEach(initSitePicker);
+
+      Promise.all([
+        fetch("update2.m3u").then(res => res.ok ? res.text() : ""),
+        fetch("xumo.m3u").then(res => res.ok ? res.text() : ""),
+        fetch("xiaomi.m3u").then(res => res.ok ? res.text() : "")
+      ])
+      .then(([data1, data2, data3]) => {
+        const canales = [...parseM3U(data1), ...parseM3U(data2), ...parseM3U(data3)];
+        if(canales.length) mostrarCanales(canales, true);
+        console.log("✅ Auto-load M3U listo:", canales.length);
+      })
+      .catch(err => console.error("❌ Error auto-load M3U:", err));
+    });
+  </script>
+</body>
+</html>
